@@ -1,0 +1,67 @@
+# satu-warga-backend/docker-compose.yml
+
+version: '3.8' # Tentukan versi Compose
+
+services:
+  # 1. Layanan Database MongoDB
+  mongo:
+    image: mongo # Gunakan image resmi MongoDB dari Docker Hub
+    ports:
+      - "27017:27017" # Mapping port container ke port di mesin lokal Anda
+    volumes:
+      - mongo-data:/data/db # Menyimpan data database secara persisten
+
+  # 2. Layanan Autentikasi
+  auth-service:
+    build: ./auth-service # Beritahu Compose untuk build dari Dockerfile di folder ini
+    ports:
+      - "5001:5001" # Mapping port
+    env_file:
+      - ./auth-service/.env # Muat environment variables dari file .env
+    depends_on:
+      - mongo # Jangan jalankan service ini sebelum 'mongo' siap
+
+  # 3. Layanan Laporan
+  report-service:
+    build: ./report-service
+    ports:
+      - "5002:5002"
+    env_file:
+      - ./report-service/.env
+    depends_on:
+      - mongo
+
+  # 4. Layanan API Gateway
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "5000:5000"
+    depends_on:
+      - auth-service # Gateway baru bisa berjalan jika service di belakangnya sudah siap
+      - report-service
+      - announcement-service
+      - feedback-service
+
+  # 5. Layanan Pengumuman
+  announcement-service:
+    build: ./announcement-service
+    ports:
+      - "5003:5003"
+    env_file:
+      - ./announcement-service/.env
+    depends_on:
+      - mongo
+
+  # 6. Layanan Kritik & Saran
+  feedback-service:
+    build: ./feedback-service
+    ports:
+      - "5004:5004"
+    env_file:
+      - ./feedback-service/.env
+    depends_on:
+      - mongo
+
+# Definisikan volume yang akan digunakan untuk persistensi data
+volumes:
+  mongo-data:
