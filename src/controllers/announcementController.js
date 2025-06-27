@@ -61,15 +61,16 @@ exports.updateAnnouncement = async (req, res) => {
             return res.status(404).json({ msg: 'Announcement not found' });
         }
 
-        // Cek otorisasi: Hanya pembuat asli atau admin yang bisa mengedit
-        if (announcement.author.id.toString() !== req.user.id && req.user.role !== 'admin') {
+        // --- PERBAIKAN DI SINI ---
+        // Ganti 'author' menjadi 'user'
+        if (announcement.user.toString() !== req.user.id && req.user.role !== 'admin') {
             return res.status(401).json({ msg: 'User not authorized' });
         }
 
         // Update data
         if (title) announcement.title = title;
         if (content) announcement.content = content;
-        announcement.updatedAt = Date.now();
+        announcement.updatedAt = Date.now(); // Ini bagus, tapi Mongoose bisa melakukannya otomatis dengan timestamps
 
         const updatedAnnouncement = await announcement.save();
         res.json(updatedAnnouncement);
@@ -85,16 +86,21 @@ exports.updateAnnouncement = async (req, res) => {
 exports.deleteAnnouncement = async (req, res) => {
     try {
         const announcement = await Announcement.findById(req.params.id);
+
         if (!announcement) {
             return res.status(404).json({ msg: 'Announcement not found' });
         }
 
-        // Cek otorisasi: Hanya pembuat asli atau admin yang bisa menghapus
-        if (announcement.author.id.toString() !== req.user.id && req.user.role !== 'admin') {
+        // --- PERBAIKAN DI SINI ---
+        // Ganti 'author' menjadi 'user' agar sesuai dengan model saat pembuatan
+        if (announcement.user.toString() !== req.user.id && req.user.role !== 'admin') {
             return res.status(401).json({ msg: 'User not authorized' });
         }
 
-        await announcement.remove();
+        // --- PERBAIKAN OPSIONAL TAPI DIANJURKAN ---
+        // Menggunakan metode modern .deleteOne()
+        await announcement.deleteOne(); 
+
         res.json({ msg: 'Announcement removed' });
     } catch (err) {
         console.error(err.message);

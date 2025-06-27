@@ -26,7 +26,7 @@ exports.createFeedback = async (req, res) => {
 
 // @desc    Get all feedback (for admins/RT/RW)
 // @route   GET /
-exports.getFeedback = async (req, res) => {
+exports.getFeedbacks = async (req, res) => {
     try {
         // Mengambil semua feedback dan mengisinya dengan data nama dan email dari user yang mengirim
         const feedbacks = await Feedback.find()
