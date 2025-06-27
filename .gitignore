@@ -1,0 +1,5 @@
+# Production
+/build
+
+# File Environment
+.env
